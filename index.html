@@ -205,17 +205,11 @@
 
             <!-- 功能按钮 -->
             <div class="button-group flex justify-center gap-4 mb-4">
-                <button onclick="toggleMask('word')" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" title="快捷键: E">
+                <button id="toggleEnglishBtn" onclick="toggleMask('english')" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" title="快捷键: E">
                     遮盖英文
                 </button>
-                <button onclick="toggleMask('meaning')" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" title="快捷键: C">
+                <button id="toggleChineseBtn" onclick="toggleMask('chinese')" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" title="快捷键: C">
                     遮盖中文
-                </button>
-                <button onclick="toggleMask('example')" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" title="快捷键: X">
-                    遮盖例句
-                </button>
-                <button onclick="toggleMask('none')" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600" title="快捷键: R">
-                    显示全部
                 </button>
                 <button onclick="toggleCardMode()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" title="快捷键: M">
                     切换卡片模式
@@ -263,10 +257,8 @@
             <ul class="space-y-2">
                 <li>空格键：翻转卡片</li>
                 <li>D：切换深色模式</li>
-                <li>E：遮盖英文</li>
-                <li>C：遮盖中文</li>
-                <li>X：遮盖例句</li>
-                <li>R：显示全部</li>
+                <li>E：切换英文显示</li>
+                <li>C：切换中文显示</li>
                 <li>M：切换卡片模式</li>
                 <li>/：聚焦搜索框</li>
                 <li>1-9：切换单词组</li>
@@ -320,7 +312,29 @@
 
         // 切换遮罩模式
         function toggleMask(mode) {
-            currentMaskMode = mode;
+            const englishBtn = document.getElementById('toggleEnglishBtn');
+            const chineseBtn = document.getElementById('toggleChineseBtn');
+
+            if (mode === 'english') {
+                if (currentMaskMode === 'english') {
+                    currentMaskMode = 'none';
+                    englishBtn.textContent = '遮盖英文';
+                } else {
+                    currentMaskMode = 'english';
+                    englishBtn.textContent = '显示英文';
+                    chineseBtn.textContent = '遮盖中文';
+                }
+            } else if (mode === 'chinese') {
+                if (currentMaskMode === 'chinese') {
+                    currentMaskMode = 'none';
+                    chineseBtn.textContent = '遮盖中文';
+                } else {
+                    currentMaskMode = 'chinese';
+                    chineseBtn.textContent = '显示中文';
+                    englishBtn.textContent = '遮盖英文';
+                }
+            }
+
             const currentUnit = document.querySelector('#groupButtons .bg-blue-700')?.textContent;
             if (currentUnit) {
                 showGroup(currentUnit);
@@ -347,8 +361,8 @@
                     <div class="flex justify-between items-start mb-2">
                         <div class="flex items-center gap-2">
                             <div>
-                                <h2 class="text-xl font-bold text-gray-800 ${currentMaskMode === 'word' ? 'masked' : ''}">${word.Word}</h2>
-                                <span class="phonetic ${currentMaskMode === 'word' ? 'masked' : ''}">${word.Phonetic || ''}</span>
+                                <h2 class="text-xl font-bold text-gray-800 ${currentMaskMode === 'english' ? 'masked' : ''}">${word.Word}</h2>
+                                <span class="phonetic ${currentMaskMode === 'english' ? 'masked' : ''}">${word.Phonetic || ''}</span>
                             </div>
                             <button 
                                 onclick="speak('${word.Word}')"
@@ -367,12 +381,12 @@
                         </div>
                         <span class="text-sm font-medium text-gray-500">${word.POS}</span>
                     </div>
-                    <p class="text-gray-700 mb-2 ${currentMaskMode === 'meaning' ? 'masked' : ''}">${word.Meaning}</p>
-                    <div class="example ${currentMaskMode === 'example' ? 'masked' : ''}">
-                        <p class="text-gray-700">${word.Example || ''}</p>
-                        <p class="text-gray-600 text-sm">${word.Translation || ''}</p>
+                    <p class="text-gray-700 mb-2 ${currentMaskMode === 'chinese' ? 'masked' : ''}">${word.Meaning}</p>
+                    <div class="example">
+                        <p class="text-gray-700 ${currentMaskMode === 'english' ? 'masked' : ''}">${word.Example || ''}</p>
+                        <p class="text-gray-600 text-sm ${currentMaskMode === 'chinese' ? 'masked' : ''}">${word.Translation || ''}</p>
                     </div>
-                    ${word.Note && word.Note !== '-' ? `<p class="text-sm text-gray-600 border-t pt-2 mt-2">${word.Note}</p>` : ''}
+                    ${word.Note && word.Note !== '-' ? `<p class="text-sm text-gray-600 border-t pt-2 mt-2 ${currentMaskMode === 'chinese' ? 'masked' : ''}">${word.Note}</p>` : ''}
                 </div>
             `;
         }
@@ -385,8 +399,8 @@
                         <div class="card-front">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <h2 class="text-xl font-bold text-gray-800">${word.Word}</h2>
-                                    <span class="phonetic">${word.Phonetic || ''}</span>
+                                    <h2 class="text-xl font-bold text-gray-800 ${currentMaskMode === 'english' ? 'masked' : ''}">${word.Word}</h2>
+                                    <span class="phonetic ${currentMaskMode === 'english' ? 'masked' : ''}">${word.Phonetic || ''}</span>
                                 </div>
                                 <button 
                                     onclick="speak('${word.Word}'); event.stopPropagation();"
@@ -401,13 +415,13 @@
                         </div>
                         <div class="card-back">
                             <div class="flex flex-col h-full">
-                                <p class="text-gray-700 text-lg mb-4">${word.Meaning}</p>
+                                <p class="text-gray-700 text-lg mb-4 ${currentMaskMode === 'chinese' ? 'masked' : ''}">${word.Meaning}</p>
                                 <div class="example">
-                                    <p class="text-gray-700">${word.Example || ''}</p>
-                                    <p class="text-gray-600 text-sm">${word.Translation || ''}</p>
+                                    <p class="text-gray-700 ${currentMaskMode === 'english' ? 'masked' : ''}">${word.Example || ''}</p>
+                                    <p class="text-gray-600 text-sm ${currentMaskMode === 'chinese' ? 'masked' : ''}">${word.Translation || ''}</p>
                                 </div>
                                 ${word.Note && word.Note !== '-' ? 
-                                    `<p class="text-sm text-gray-600 border-t pt-2 mt-auto">${word.Note}</p>` 
+                                    `<p class="text-sm text-gray-600 border-t pt-2 mt-auto ${currentMaskMode === 'chinese' ? 'masked' : ''}">${word.Note}</p>` 
                                     : ''}
                             </div>
                         </div>
@@ -518,17 +532,11 @@
                 case 'd': // 切换深色模式
                     toggleTheme();
                     break;
-                case 'e': // 遮盖英文
-                    toggleMask('word');
+                case 'e': // 切换英文显示
+                    toggleMask('english');
                     break;
-                case 'c': // 遮盖中文
-                    toggleMask('meaning');
-                    break;
-                case 'x': // 遮盖例句
-                    toggleMask('example');
-                    break;
-                case 'r': // 显示全部
-                    toggleMask('none');
+                case 'c': // 切换中文显示
+                    toggleMask('chinese');
                     break;
                 case 'm': // 切换卡片模式
                     toggleCardMode();
