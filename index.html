@@ -94,6 +94,48 @@
             filter: none;
         }
 
+        /* 悬浮工具栏 */
+        .floating-toolbar {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        html.dark .floating-toolbar {
+            background: rgba(45, 45, 45, 0.9);
+        }
+
+        .floating-toolbar button {
+            padding: 10px;
+            border-radius: 8px;
+            width: 120px;
+            text-align: left;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .floating-toolbar button.active {
+            background-color: #4299e1;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .floating-toolbar button:hover {
+            transform: scale(1.05);
+        }
+
         /* 音标样式 */
         .phonetic {
             font-family: Arial, sans-serif;
@@ -145,41 +187,17 @@
             .container { padding: 0.5rem; }
             .button-group { flex-wrap: wrap; gap: 0.5rem; }
             .button-group button { width: calc(50% - 0.5rem); }
-        }
-
-        /* 工具栏 */
-        .toolbar {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-            z-index: 1000;
-        }
-        .toolbar button {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #4a5568;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .toolbar button:hover {
-            transform: scale(1.1);
-        }
-
-        /* 快捷键提示 */
-        .shortcut-hint {
-            font-size: 0.8em;
-            color: #666;
-            margin-left: 0.5em;
-        }
-        html.dark .shortcut-hint {
-            color: #999;
+            .floating-toolbar {
+                bottom: 20px;
+                top: auto;
+                right: 20px;
+                transform: none;
+                flex-direction: row;
+            }
+            .floating-toolbar button {
+                width: auto;
+                padding: 8px;
+            }
         }
     </style>
 </head>
@@ -205,15 +223,6 @@
 
             <!-- 功能按钮 -->
             <div class="button-group flex justify-center gap-4 mb-4">
-                <button id="toggleEnglishBtn" onclick="toggleMask('english')" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" title="快捷键: E">
-                    遮盖英文
-                </button>
-                <button id="toggleChineseBtn" onclick="toggleMask('chinese')" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" title="快捷键: C">
-                    遮盖中文
-                </button>
-                <button onclick="toggleCardMode()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" title="快捷键: M">
-                    切换卡片模式
-                </button>
                 <button onclick="showFavorites()" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
                     查看收藏夹
                 </button>
@@ -244,10 +253,28 @@
         <div id="wordContainer" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3"></div>
     </div>
 
-    <!-- 工具栏 -->
-    <div class="toolbar">
-        <button onclick="scrollToTop()" title="返回顶部" class="hover:bg-gray-600">↑</button>
-        <button onclick="toggleHelp()" title="帮助" class="hover:bg-gray-600">?</button>
+    <!-- 悬浮工具栏 -->
+    <div class="floating-toolbar">
+        <button id="toggleEnglishBtn" onclick="toggleMask('english')" class="hover:bg-blue-100 dark:hover:bg-gray-700" title="快捷键: E">
+            <span class="material-icons">visibility</span>
+            遮盖英文
+        </button>
+        <button id="toggleChineseBtn" onclick="toggleMask('chinese')" class="hover:bg-blue-100 dark:hover:bg-gray-700" title="快捷键: C">
+            <span class="material-icons">visibility</span>
+            遮盖中文
+        </button>
+        <button id="toggleCardModeBtn" onclick="toggleCardMode()" class="hover:bg-blue-100 dark:hover:bg-gray-700" title="快捷键: M">
+            <span class="material-icons">flip</span>
+            卡片模式
+        </button>
+        <button onclick="scrollToTop()" class="hover:bg-blue-100 dark:hover:bg-gray-700" title="返回顶部">
+            <span class="material-icons">arrow_upward</span>
+            返回顶部
+        </button>
+        <button onclick="toggleHelp()" class="hover:bg-blue-100 dark:hover:bg-gray-700" title="帮助">
+            <span class="material-icons">help_outline</span>
+            帮助
+        </button>
     </div>
 
     <!-- 帮助弹窗 -->
@@ -270,6 +297,7 @@
         </div>
     </div>
 
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/3.0.1/iconfont/material-icons.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
     <script>
@@ -279,6 +307,38 @@
         let isCardMode = false;
         let currentFontSize = 'normal';
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+
+        // 更新工具栏按钮状态
+        function updateToolbarButtonStates() {
+            const englishBtn = document.getElementById('toggleEnglishBtn');
+            const chineseBtn = document.getElementById('toggleChineseBtn');
+            const cardModeBtn = document.getElementById('toggleCardModeBtn');
+
+            // 重置所有按钮状态
+            englishBtn.classList.remove('active');
+            chineseBtn.classList.remove('active');
+            cardModeBtn.classList.remove('active');
+
+            // 更新遮盖模式按钮状态
+            if (currentMaskMode === 'english') {
+                englishBtn.classList.add('active');
+            } else if (currentMaskMode === 'chinese') {
+                chineseBtn.classList.add('active');
+            }
+
+            // 更新卡片模式按钮状态
+            if (isCardMode) {
+                cardModeBtn.classList.add('active');
+            }
+
+            // 更新按钮文本
+            englishBtn.querySelector('.material-icons').textContent = 
+                currentMaskMode === 'english' ? 'visibility_off' : 'visibility';
+            chineseBtn.querySelector('.material-icons').textContent = 
+                currentMaskMode === 'chinese' ? 'visibility_off' : 'visibility';
+            cardModeBtn.querySelector('.material-icons').textContent = 
+                isCardMode ? 'flip_camera_android' : 'flip';
+        }
 
         // 初始化主题
         function initTheme() {
@@ -312,29 +372,22 @@
 
         // 切换遮罩模式
         function toggleMask(mode) {
-            const englishBtn = document.getElementById('toggleEnglishBtn');
-            const chineseBtn = document.getElementById('toggleChineseBtn');
-
             if (mode === 'english') {
-                if (currentMaskMode === 'english') {
-                    currentMaskMode = 'none';
-                    englishBtn.textContent = '遮盖英文';
-                } else {
-                    currentMaskMode = 'english';
-                    englishBtn.textContent = '显示英文';
-                    chineseBtn.textContent = '遮盖中文';
-                }
+                currentMaskMode = currentMaskMode === 'english' ? 'none' : 'english';
             } else if (mode === 'chinese') {
-                if (currentMaskMode === 'chinese') {
-                    currentMaskMode = 'none';
-                    chineseBtn.textContent = '遮盖中文';
-                } else {
-                    currentMaskMode = 'chinese';
-                    chineseBtn.textContent = '显示中文';
-                    englishBtn.textContent = '遮盖英文';
-                }
+                currentMaskMode = currentMaskMode === 'chinese' ? 'none' : 'chinese';
             }
 
+            // 如果开启了一种遮罩模式，确保另一种被关闭
+            if (currentMaskMode === 'english' && mode === 'english') {
+                currentMaskMode = 'english';
+            } else if (currentMaskMode === 'chinese' && mode === 'chinese') {
+                currentMaskMode = 'chinese';
+            }
+
+            updateToolbarButtonStates();
+            
+            // 刷新当前显示的内容
             const currentUnit = document.querySelector('#groupButtons .bg-blue-700')?.textContent;
             if (currentUnit) {
                 showGroup(currentUnit);
@@ -344,6 +397,8 @@
         // 切换卡片模式
         function toggleCardMode() {
             isCardMode = !isCardMode;
+            updateToolbarButtonStates();
+            
             const currentUnit = document.querySelector('#groupButtons .bg-blue-700')?.textContent;
             if (currentUnit) {
                 showGroup(currentUnit);
@@ -402,13 +457,22 @@
                                     <h2 class="text-xl font-bold text-gray-800 ${currentMaskMode === 'english' ? 'masked' : ''}">${word.Word}</h2>
                                     <span class="phonetic ${currentMaskMode === 'english' ? 'masked' : ''}">${word.Phonetic || ''}</span>
                                 </div>
-                                <button 
-                                    onclick="speak('${word.Word}'); event.stopPropagation();"
-                                    class="p-2 rounded-full hover:bg-gray-100"
-                                    title="播放发音"
-                                >
-                                    🔊
-                                </button>
+                                <div class="flex gap-2">
+                                    <button 
+                                        onclick="speak('${word.Word}'); event.stopPropagation();"
+                                        class="p-2 rounded-full hover:bg-gray-100"
+                                        title="播放发音"
+                                    >
+                                        🔊
+                                    </button>
+                                    <button 
+                                        onclick="toggleFavorite('${word.Word}'); event.stopPropagation();"
+                                        class="p-2 rounded-full hover:bg-gray-100"
+                                        title="收藏单词"
+                                    >
+                                        ${favorites.includes(word.Word) ? '⭐️' : '☆'}
+                                    </button>
+                                </div>
                             </div>
                             <p class="text-sm text-gray-500 mt-2">${word.POS}</p>
                             <p class="text-sm text-gray-500 mt-4">点击卡片查看释义</p>
@@ -433,7 +497,9 @@
         // 更新进度信息
         function updateProgress(unitName, total) {
             const progressInfo = document.getElementById('progressInfo');
-            const currentUnitTotal = vocabularyData.filter(item => `Unit ${item.Unit}` === unitName).length;
+            const currentUnitTotal = unitName === '收藏夹' ? 
+                favorites.length :
+                vocabularyData.filter(item => `Unit ${item.Unit}` === unitName).length;
             progressInfo.textContent = `${unitName} (${currentUnitTotal}个单词) | 总计：${total}个单词`;
         }
 
@@ -467,6 +533,9 @@
             updateProgress(unitName, vocabularyData.length);
             container.innerHTML = groupData.map(createWordCard).join('');
             loading.style.display = 'none';
+            
+            // 更新工具栏状态
+            updateToolbarButtonStates();
         }
 
         // 收藏单词
@@ -477,9 +546,13 @@
                 favorites.push(word);
             }
             localStorage.setItem('favorites', JSON.stringify(favorites));
+            
+            // 如果当前在收藏夹页面，需要刷新显示
             const currentUnit = document.querySelector('#groupButtons .bg-blue-700')?.textContent;
             if (currentUnit) {
                 showGroup(currentUnit);
+            } else {
+                showFavorites();
             }
         }
 
@@ -501,14 +574,16 @@
             if (favoriteWords.length === 0) {
                 container.innerHTML = '<p class="text-center text-gray-600">暂无收藏的单词</p>';
                 loading.style.display = 'none';
-                updateProgress('收藏夹 (0个单词)', vocabularyData.length);
+                updateProgress('收藏夹', vocabularyData.length);
                 return;
             }
 
-            // 使用与 showGroup 相同的逻辑创建卡片
             container.innerHTML = favoriteWords.map(createWordCard).join('');
             updateProgress('收藏夹', vocabularyData.length);
             loading.style.display = 'none';
+            
+            // 更新工具栏状态
+            updateToolbarButtonStates();
         }
 
         // 搜索功能
@@ -524,7 +599,7 @@
             container.innerHTML = filteredWords.map(createWordCard).join('');
             updateProgress('搜索结果', vocabularyData.length);
 
-            // 更新按钮状态
+            // 清除所有组按钮的选中状态
             document.querySelectorAll('#groupButtons button').forEach(btn => {
                 btn.classList.remove('bg-blue-700');
                 btn.classList.add('bg-blue-500');
