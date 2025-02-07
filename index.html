@@ -487,14 +487,28 @@
         function showFavorites() {
             const favoriteWords = vocabularyData.filter(word => favorites.includes(word.Word));
             const container = document.getElementById('wordContainer');
-            container.innerHTML = favoriteWords.map(createWordCard).join('');
-            updateProgress('收藏夹', vocabularyData.length);
+            const loading = document.getElementById('loading');
 
-            // 更新按钮状态
+            loading.style.display = 'block';
+            container.innerHTML = '';
+
+            // 清除所有组按钮的选中状态
             document.querySelectorAll('#groupButtons button').forEach(btn => {
                 btn.classList.remove('bg-blue-700');
                 btn.classList.add('bg-blue-500');
             });
+
+            if (favoriteWords.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-600">暂无收藏的单词</p>';
+                loading.style.display = 'none';
+                updateProgress('收藏夹 (0个单词)', vocabularyData.length);
+                return;
+            }
+
+            // 使用与 showGroup 相同的逻辑创建卡片
+            container.innerHTML = favoriteWords.map(createWordCard).join('');
+            updateProgress('收藏夹', vocabularyData.length);
+            loading.style.display = 'none';
         }
 
         // 搜索功能
