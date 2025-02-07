@@ -337,7 +337,7 @@
             chineseBtn.querySelector('.material-icons').textContent = 
                 currentMaskMode === 'chinese' ? 'visibility_off' : 'visibility';
             cardModeBtn.querySelector('.material-icons').textContent = 
-                isCardMode ? 'flip_camera_android' : 'flip';
+                isCardMode ? 'grid_view' : 'view_agenda';
         }
 
         // 初始化主题
@@ -578,11 +578,12 @@
                 return;
             }
 
-            container.innerHTML = favoriteWords.map(createWordCard).join('');
+            // 应用当前的遮盖和卡片模式到收藏夹内容
+            container.innerHTML = favoriteWords.map(word => createWordCard(word)).join('');
             updateProgress('收藏夹', vocabularyData.length);
             loading.style.display = 'none';
-            
-            // 更新工具栏状态
+
+            // 确保工具栏状态反映当前模式
             updateToolbarButtonStates();
         }
 
