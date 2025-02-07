@@ -275,7 +275,7 @@
             遮盖中文
         </button>
         <button id="toggleCardModeBtn" onclick="toggleCardMode()" class="hover:bg-blue-100 dark:hover:bg-gray-700" title="快捷键: M">
-            <span class="material-icons">flip</span>
+            <span class="material-icons">style</span>
             卡片模式
         </button>
         <button onclick="scrollToTop()" class="hover:bg-blue-100 dark:hover:bg-gray-700" title="返回顶部">
@@ -345,7 +345,7 @@
             chineseBtn.querySelector('.material-icons').textContent = 
                 currentMaskMode === 'chinese' ? 'visibility_off' : 'visibility';
             cardModeBtn.querySelector('.material-icons').textContent = 
-                isCardMode ? 'flip_camera_android' : 'flip';
+                isCardMode ? 'sync_alt' : 'style';
         }
 
         // 初始化主题
